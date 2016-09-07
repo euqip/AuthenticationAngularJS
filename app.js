@@ -1,13 +1,20 @@
-var express = require('express');
-var http = require('http');
-var path = require('path');
-var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
+var express = require('express')
+  , http = require('http')
+  , path = require('path')
+  , passport = require('passport')
+  , LocalStrategy = require('passport-local').Strategy
+  , favicon = require ('favicon')
+  , session = require ('express-session')
+  , bodyParser = require ('body-parser')
+  , cookieParser = require ('cookie-parser')
+  , methodOverride = require('method-override')
+  , router = express.Router()
 
 //==================================================================
 // Define the strategy to be used by PassportJS
 passport.use(new LocalStrategy(
   function(username, password, done) {
+    console.log(username + ' - ' + password);
     if (username === "admin" && password === "admin") // stupid example
       return done(null, {name: "admin"});
 
@@ -26,7 +33,8 @@ passport.deserializeUser(function(user, done) {
 
 // Define a middleware function to be used for every secured routes
 var auth = function(req, res, next){
-  if (!req.isAuthenticated()) 
+  console.log('auth : '+ req.user);
+  if (!req.isAuthenticated())
   	res.send(401);
   else
   	next();
@@ -35,29 +43,37 @@ var auth = function(req, res, next){
 
 // Start express application
 var app = express();
-
+app.disable('x-powered-by')
 // all environments
 app.set('port', process.env.PORT || 3000);
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
-app.use(express.favicon());
-app.use(express.logger('dev'));
-app.use(express.cookieParser()); 
-app.use(express.bodyParser());
-app.use(express.methodOverride());
-app.use(express.session({ secret: 'securedsession' }));
+app.use(session({
+  secret: 'SJLgbSPo',
+  secret: 'BkJRzLjs',
+  resave: true,
+  saveUninitialized: true,
+  //cookie: { secure: true }
+  //  cookie secure does not work with http but https
+  //  to use this option ther is a need to have an https server available
+}))
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(passport.initialize()); // Add passport initialization
 app.use(passport.session());    // Add passport initialization
-app.use(app.router);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // development only
 if ('development' == app.get('env')) {
-  app.use(express.errorHandler());
+  //app.use(errorHandler());
 }
 
 //==================================================================
 // routes
+app.all ('*', function (req, res, next){
+  console.log(req.body);
+  next()
+})
 app.get('/', function(req, res){
   res.render('index', { title: 'Express' });
 });
@@ -70,11 +86,14 @@ app.get('/users', auth, function(req, res){
 //==================================================================
 // route to test if the user is logged in or not
 app.get('/loggedin', function(req, res) {
+  console.log('check if /loggedin');
+  console.log(req.user);
   res.send(req.isAuthenticated() ? req.user : '0');
 });
 
 // route to log in
 app.post('/login', passport.authenticate('local'), function(req, res) {
+  console.log('login ' + req.user);
   res.send(req.user);
 });
 

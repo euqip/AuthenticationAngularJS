@@ -1,14 +1,23 @@
 {
   "name": "AuthenticationInAngularJS",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+    "test": "./node_modules/nodemon/bin/nodemon.js app.js"
   },
   "dependencies": {
-    "express": "3.3.5",
+    "body-parser": "^1.15.2",
+    "cookie-parser": "^1.4.3",
     "ejs": "*",
+    "express": "latest",
+    "express-session": "^1.14.1",
+    "favicon": "0.0.2",
+    "method-override": "^2.3.6",
     "passport": "*",
     "passport-local": "*"
+  },
+  "devDependencies": {
+    "nodemon": "^1.10.2"
   }
 }
